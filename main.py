@@ -49,7 +49,7 @@ class MainWindow(QMainWindow):
         self.distanceLabel = QLabel('Distance')
         self.distanceCombobox.addItems(['L1', 'L2', 'Cosine'])
         self.decompositionAlgCombobox = QComboBox()
-        self.dalabel = QLabel('Distance')
+        self.dalabel = QLabel('Decomposition algorithm')
         self.decompositionAlgCombobox.addItems(['SVD', 'PCA', 'LDiA'])
         self.nInput = QLineEdit()
         self.nLabel = QLabel('N - compositions')

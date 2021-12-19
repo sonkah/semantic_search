@@ -1,6 +1,5 @@
 from PyQt5.QtWidgets import QMainWindow, QHBoxLayout, QLineEdit, QPushButton, QWidget, QVBoxLayout, QComboBox, \
-    QApplication, QPlainTextEdit, QMenu, QDialog, QListWidget, QAction
-from PyQt5.QtGui import QIntValidator
+    QApplication, QPlainTextEdit, QGridLayout, QLabel
 import sys, traceback
 from SemanticSearchEngine import SemanticSearchEngine
 
@@ -41,21 +40,33 @@ class MainWindow(QMainWindow):
 
         layout.addWidget(self.topBar)
 
+        self.gridlayoutW = QWidget()
+        glay = QGridLayout()
         self.vectorTypeCombobox = QComboBox()
-        self.vectorTypeCombobox.addItems(['BoW', 'TFIDF', 'Word2Vec'])
+        self.vectorTypeLabel = QLabel('Vector type')
+        self.vectorTypeCombobox.addItems(['BoW', 'TFIDF'])
         self.distanceCombobox = QComboBox()
+        self.distanceLabel = QLabel('Distance')
         self.distanceCombobox.addItems(['L1', 'L2', 'Cosine'])
         self.decompositionAlgCombobox = QComboBox()
+        self.dalabel = QLabel('Distance')
         self.decompositionAlgCombobox.addItems(['SVD', 'PCA', 'LDiA'])
         self.nInput = QLineEdit()
-        self.nInput.setPlaceholderText('Ilość analizowanych tematów')
+        self.nLabel = QLabel('N - compositions')
         self.nInput.setText('1')
 
 
-        layout.addWidget(self.vectorTypeCombobox)
-        layout.addWidget(self.distanceCombobox)
-        layout.addWidget(self.decompositionAlgCombobox)
-        layout.addWidget(self.nInput)
+        glay.addWidget(self.vectorTypeLabel, 0, 0)
+        glay.addWidget(self.vectorTypeCombobox, 0, 1)
+        glay.addWidget(self.distanceLabel, 1, 0)
+        glay.addWidget(self.distanceCombobox, 1, 1)
+        glay.addWidget(self.dalabel, 2, 0)
+        glay.addWidget(self.decompositionAlgCombobox, 2, 1)
+        glay.addWidget(self.nLabel, 3, 0)
+        glay.addWidget(self.nInput, 3, 1)
+        self.gridlayoutW.setLayout(glay)
+
+        layout.addWidget(self.gridlayoutW)
 
         self.output = QPlainTextEdit()
         layout.addWidget(self.output)

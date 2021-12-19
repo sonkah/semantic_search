@@ -1,7 +1,7 @@
-import numpy as np
 from sklearn.metrics import pairwise_distances
 from sklearn.decomposition import TruncatedSVD, PCA, LatentDirichletAllocation as LDiA
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+
 class SemanticSearchEngine:
     """
     @norm - l1, l2, cosine
@@ -15,8 +15,6 @@ class SemanticSearchEngine:
             self.vectorizer = CountVectorizer()
         elif vector_kind == 'tfidf':
             self.vectorizer = TfidfVectorizer()
-        elif vector_kind == 'word2vec':
-            pass
 
         if decomposition_algorithm == 'svd':
             self.da = TruncatedSVD(n_components=number_of_components)

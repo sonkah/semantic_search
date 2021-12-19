@@ -1,8 +1,10 @@
 from PyQt5.QtWidgets import QMainWindow, QHBoxLayout, QLineEdit, QPushButton, QWidget, QVBoxLayout, QComboBox, \
-    QApplication, QPlainTextEdit, QGridLayout, QLabel
+    QApplication, QPlainTextEdit, QMenu, QDialog, QListWidget, QAction
+from PyQt5.QtGui import QIntValidator
 import sys, traceback
 from SemanticSearchEngine import SemanticSearchEngine
-
+from xml.etree.ElementTree import iterparse
+import re
 
 def loadCorpusMock():
     ye = open('YorkEngland.txt', 'r')
@@ -16,6 +18,50 @@ def loadCorpusMock():
     ny.close()
     return [yeText, yaText, nyText], ['YorkEngland', 'YorkAustraila', 'NewYork']
 
+
+def loadCorpus():
+    file_path = r"D:\enwiki-20211201-pages-articles-multistream.xml\enwiki-20211201-pages-articles-multistream.xml"
+    corpus = []
+    title = []
+    page_flag = False
+    title_good = False
+    counter = 0
+    print("--parsing start--")
+
+    for event, elem in iterparse(file_path, events=("start", "end")):
+        if elem.tag == "{http://www.mediawiki.org/xml/export-0.10/}page" and event == "start":
+            page_flag = True
+        if page_flag:
+            if elem.tag == "{http://www.mediawiki.org/xml/export-0.10/}title" and event == "end":
+                title_good = True
+                title.append(elem.text)
+            if elem.tag == "{http://www.mediawiki.org/xml/export-0.10/}text" and event == "end":
+                parsed = elem.text
+                if parsed.startswith('#REDIRECT'):
+                    title.pop()
+
+                else:
+                    parsed = re.sub("\{\{.*?\}\}", "", parsed)
+                    parsed = re.sub("\n", "", parsed)
+                    parsed = parsed.split("==")[0]
+                    parsed = re.sub("\\'", "", parsed)
+                    parsed = re.sub("(\[\[Category\:.*?\]\])|(\[\[File\:.*?\]\])", "", parsed)
+                    parsed = re.sub("\[\[", "", parsed)
+                    parsed = re.sub("\|.*?\]\]", "", parsed)
+                    parsed = re.sub("\]\]", "", parsed)
+                    parsed = re.sub("\<\!\-\-.*?\-\-\>", "", parsed)
+                    parsed = re.sub("\<ref\>.*?\<\/ref\>", "", parsed)
+                    # parsed = re.sub("\=\= See also \=\=.*", "aa", parsed)
+                    corpus.append(parsed.lower())
+        if elem.tag == "{http://www.mediawiki.org/xml/export-0.10/}page" and event == "end":
+            counter += 1
+            page_flag = False
+            title_good = False
+        if counter > 5000:
+            break
+    print("--parsing end: ", len(title), " records--")
+
+    return corpus, title
 
 class MainWindow(QMainWindow):
 
@@ -40,36 +86,25 @@ class MainWindow(QMainWindow):
 
         layout.addWidget(self.topBar)
 
-        self.gridlayoutW = QWidget()
-        glay = QGridLayout()
         self.vectorTypeCombobox = QComboBox()
-        self.vectorTypeLabel = QLabel('Vector type')
-        self.vectorTypeCombobox.addItems(['BoW', 'TFIDF'])
+        self.vectorTypeCombobox.addItems(['BoW', 'TFIDF', 'Word2Vec'])
         self.distanceCombobox = QComboBox()
-        self.distanceLabel = QLabel('Distance')
         self.distanceCombobox.addItems(['L1', 'L2', 'Cosine'])
         self.decompositionAlgCombobox = QComboBox()
-        self.dalabel = QLabel('Decomposition algorithm')
         self.decompositionAlgCombobox.addItems(['SVD', 'PCA', 'LDiA'])
         self.nInput = QLineEdit()
-        self.nLabel = QLabel('N - compositions')
+        self.nInput.setPlaceholderText('Ilość analizowanych tematów')
         self.nInput.setText('1')
 
 
-        glay.addWidget(self.vectorTypeLabel, 0, 0)
-        glay.addWidget(self.vectorTypeCombobox, 0, 1)
-        glay.addWidget(self.distanceLabel, 1, 0)
-        glay.addWidget(self.distanceCombobox, 1, 1)
-        glay.addWidget(self.dalabel, 2, 0)
-        glay.addWidget(self.decompositionAlgCombobox, 2, 1)
-        glay.addWidget(self.nLabel, 3, 0)
-        glay.addWidget(self.nInput, 3, 1)
-        self.gridlayoutW.setLayout(glay)
-
-        layout.addWidget(self.gridlayoutW)
+        layout.addWidget(self.vectorTypeCombobox)
+        layout.addWidget(self.distanceCombobox)
+        layout.addWidget(self.decompositionAlgCombobox)
+        layout.addWidget(self.nInput)
 
         self.output = QPlainTextEdit()
         layout.addWidget(self.output)
+        self.corpus, self.labels = loadCorpus()
 
     def search(self):
         try:
@@ -79,8 +114,9 @@ class MainWindow(QMainWindow):
             n = int(self.nInput.text())
             question = self.searchbox.text().lower()
             sse = SemanticSearchEngine(distance, vectortype, da, n)
-            corpus, labels = loadCorpusMock()
-            sse.loadData(corpus, labels)
+            #corpus, labels = loadCorpusMock()
+
+            sse.loadData(self.corpus, self.labels)
             answer = sse.askQuestion(question)
             self.output.setPlainText(answer)
         except Exception as e:

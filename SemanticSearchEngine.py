@@ -36,7 +36,7 @@ class SemanticSearchEngine:
         self.corpusVect = self.vectorizer.fit_transform(corpus).toarray()
         self.topics = self.da.fit_transform(self.corpusVect)
 
-    def askQuestion(self, question):
+    def answerQuestion(self, question):
         question = [question]
         questionVect = self.vectorizer.transform(question).toarray()
         questionTopic = self.da.transform(questionVect)

@@ -39,7 +39,6 @@ def loadCorpus():
                 parsed = elem.text
                 if parsed.startswith('#REDIRECT'):
                     title.pop()
-
                 else:
                     parsed = re.sub("\{\{.*?\}\}", "", parsed)
                     parsed = re.sub("\n", "", parsed)
@@ -117,7 +116,7 @@ class MainWindow(QMainWindow):
             #corpus, labels = loadCorpusMock()
 
             sse.loadData(self.corpus, self.labels)
-            answer = sse.askQuestion(question)
+            answer = sse.answerQuestion(question)
             self.output.setPlainText(answer)
         except Exception as e:
             print(traceback.format_exc())
